@@ -1,4 +1,4 @@
-# NCU ERP Template
+﻿# NCU ERP Template
 
 A small, dependency-free Node.js app that logs into the **NorthCap University (NCU India)**
 student ERP portal and shows your **attendance**, **timetable**, **internal marks**, **exam date
@@ -30,7 +30,7 @@ If you are an AI assistant, start with [AGENTS.md](AGENTS.md).
 You need **Node.js 18.17 or newer**. It has no npm dependencies, so there is nothing to install.
 
 ```powershell
-git clone https://github.com/<your-account>/ncu-erp-template.git
+git clone https://github.com/QuintessenLabs/ncu-erp-template.git
 cd ncu-erp-template
 npm start
 ```
@@ -47,13 +47,13 @@ npm test
 
 ```
  Browser (public/)                 This server (src/server/)              NCU portal API
- ─────────────────                 ───────────────────────────            ──────────────
- login form  ── POST /api/login ─▶ PortalClient.login() ──── POST Authentication/ValidateUser ─▶ token
+ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€                 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€            â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ login form  â”€â”€ POST /api/login â”€â–¶ PortalClient.login() â”€â”€â”€â”€ POST Authentication/ValidateUser â”€â–¶ token
                                    stores {client, user} under a
                                    random session id (cookie ncu_sid)
- tabs        ── GET /api/...   ─▶ client.getAttendanceSummary() ── GET myapp/Registration/... ─▶ rows
-                                   normalize.js cleans the rows  ◀──────────────────────────────┘
- render JSON ◀────────────────────  clean JSON
+ tabs        â”€â”€ GET /api/...   â”€â–¶ client.getAttendanceSummary() â”€â”€ GET myapp/Registration/... â”€â–¶ rows
+                                   normalize.js cleans the rows  â—€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+ render JSON â—€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€  clean JSON
 ```
 
 - `src/portal/`: everything that talks to the portal. It has no web framework, so you can reuse it
@@ -151,17 +151,17 @@ Found a security problem? Please open a private security advisory on GitHub rath
 
 ```
 ncu-erp-template/
-├── AGENTS.md              instructions for AI coding assistants
-├── README.md
-├── docs/PORTAL_API.md     observed portal endpoints and shapes
-├── package.json
-├── public/                front end: index.html, app.js, styles.css
-├── scripts/probe.js       developer tool: check every endpoint
-├── src/
-│   ├── config.js          settings (env vars)
-│   ├── portal/            portal client, endpoints, parsing, normalising, errors
-│   └── server/            HTTP routes, sessions, server entry point
-└── test/                  node:test suites with synthetic fixtures
+â”œâ”€â”€ AGENTS.md              instructions for AI coding assistants
+â”œâ”€â”€ README.md
+â”œâ”€â”€ docs/PORTAL_API.md     observed portal endpoints and shapes
+â”œâ”€â”€ package.json
+â”œâ”€â”€ public/                front end: index.html, app.js, styles.css
+â”œâ”€â”€ scripts/probe.js       developer tool: check every endpoint
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ config.js          settings (env vars)
+â”‚   â”œâ”€â”€ portal/            portal client, endpoints, parsing, normalising, errors
+â”‚   â””â”€â”€ server/            HTTP routes, sessions, server entry point
+â””â”€â”€ test/                  node:test suites with synthetic fixtures
 ```
 
 ## Contributing
