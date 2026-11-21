@@ -1,0 +1,18 @@
+# Dependencies (this template has none, but forks often add some)
+node_modules/
+
+# Never commit credentials or personal data
+.env
+.env.*
+!.env.example
+*probe-output*
+*.local.json
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

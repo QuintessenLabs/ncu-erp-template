@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus ERP Template</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <strong>Campus ERP Template</strong>
+    <div id="account" hidden>
+      <span id="user-name"></span>
+      <button id="logout-btn" type="button" class="ghost">Log out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="login-view" class="card" hidden>
+      <h1>Log in with your student account</h1>
+      <p class="muted">
+        Your password is sent to this app's server, which passes it to the college portal to check it.
+        It is not saved to disk or stored in the browser.
+      </p>
+      <form id="login-form">
+        <label>
+          Username
+          <input name="username" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" id="login-btn">Log in</button>
+        <p id="login-error" class="error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="app-view" hidden>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button role="tab" type="button" data-tab="attendance" aria-selected="true">Attendance</button>
+        <button role="tab" type="button" data-tab="schedule" aria-selected="false">Timetable</button>
+        <button role="tab" type="button" data-tab="marks" aria-selected="false">Marks</button>
+        <button role="tab" type="button" data-tab="datesheet" aria-selected="false">Date sheet</button>
+        <button role="tab" type="button" data-tab="courses" aria-selected="false">Courses</button>
+        <button role="tab" type="button" data-tab="profile" aria-selected="false">Profile</button>
+      </nav>
+      <section id="panel" class="card" aria-live="polite"></section>
+    </section>
+
+    <p id="loading" class="muted" hidden>Loading...</p>
+  </main>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

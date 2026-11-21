@@ -1,0 +1,24 @@
+{
+  "name": "ncu-erp-template",
+  "version": "1.0.0",
+  "description": "Template web app that logs into the NorthCap University (NCU) student ERP portal and fetches attendance, timetable, marks and more. Built to be read and customized by people and AI coding assistants.",
+  "type": "module",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "test": "node --test",
+    "probe": "node scripts/probe.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "keywords": [
+    "erp",
+    "student-portal",
+    "attendance",
+    "university",
+    "template",
+    "nodejs"
+  ],
+  "license": "MIT"
+}
