@@ -1,4 +1,4 @@
-﻿# NCU ERP Template
+# NCU ERP Template
 
 A small, dependency-free Node.js app that logs into the **NorthCap University (NCU India)**
 student ERP portal and shows your **attendance**, **timetable**, **internal marks**, **exam date
@@ -20,6 +20,8 @@ If you are an AI assistant, start with [AGENTS.md](AGENTS.md).
 - **Attendance** per course, with the portal's percentage. Low attendance is highlighted. Click a
   course for a lecture-by-lecture list.
 - **Timetable**, **internal marks**, **exam date sheet**, **current courses** and a **profile** tab.
+- **Biometric punches**: your room and gate punches from the campus biometric system, with a per-day
+  summary. This works only on NCU campus WiFi. See [docs/BIOMETRIC.md](docs/BIOMETRIC.md).
 - **JSON API** under `/api`, so you can build your own front end.
 - **No database, no build step, no npm packages.** Node built-ins only.
 - **Privacy by default.** The server binds to `127.0.0.1`. Passwords are not stored. Sessions live
@@ -47,13 +49,13 @@ npm test
 
 ```
  Browser (public/)                 This server (src/server/)              NCU portal API
- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€                 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€            â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
- login form  â”€â”€ POST /api/login â”€â–¶ PortalClient.login() â”€â”€â”€â”€ POST Authentication/ValidateUser â”€â–¶ token
+ ─────────────────                 ───────────────────────────            ──────────────
+ login form  ── POST /api/login ─▶ PortalClient.login() ──── POST Authentication/ValidateUser ─▶ token
                                    stores {client, user} under a
                                    random session id (cookie ncu_sid)
- tabs        â”€â”€ GET /api/...   â”€â–¶ client.getAttendanceSummary() â”€â”€ GET myapp/Registration/... â”€â–¶ rows
-                                   normalize.js cleans the rows  â—€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
- render JSON â—€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€  clean JSON
+ tabs        ── GET /api/...   ─▶ client.getAttendanceSummary() ── GET myapp/Registration/... ─▶ rows
+                                   normalize.js cleans the rows  ◀──────────────────────────────┘
+ render JSON ◀────────────────────  clean JSON
 ```
 
 - `src/portal/`: everything that talks to the portal. It has no web framework, so you can reuse it
@@ -79,6 +81,7 @@ All responses are JSON. Data routes need the `ncu_sid` cookie that `/api/login` 
 | GET | `/api/courses` | Courses registered this semester |
 | GET | `/api/marks` | Internal marks, one row per component |
 | GET | `/api/datesheet` | Exam date sheet |
+| GET | `/api/biometric?from=&to=` | Your biometric punches and a per-day summary. Campus WiFi only. Dates are `YYYY-MM-DD` |
 | GET | `/api/raw/:key` | Unnormalised data for any key in `src/portal/endpoints.js` (for exploring) |
 
 Errors look like `{ "error": "message" }` with status 400, 401, 404, 405, 413, 415, 500 or 502.
@@ -107,6 +110,9 @@ Settings are environment variables. Set them in your shell before `npm start`:
 | `NCU_USER_TYPE` | `STUDENT` | `UserType` sent at login |
 | `SESSION_TTL_MINUTES` | `30` | Idle time before a session expires |
 | `PORTAL_TIMEOUT_MS` | `15000` | Timeout per portal request |
+| `NCU_BIOMETRIC_BASE` | `https://biometric.local.ncuindia.edu/` | Biometric punch site |
+| `BIOMETRIC_TIMEOUT_MS` | `10000` | Timeout for the biometric site |
+| `NCU_TIME_ZONE` | `Asia/Kolkata` | Campus time zone, used for "today" and the date format |
 | `COOKIE_SECURE` | `false` | Set to `true` when served over HTTPS |
 
 PowerShell example:
@@ -151,17 +157,17 @@ Found a security problem? Please open a private security advisory on GitHub rath
 
 ```
 ncu-erp-template/
-â”œâ”€â”€ AGENTS.md              instructions for AI coding assistants
-â”œâ”€â”€ README.md
-â”œâ”€â”€ docs/PORTAL_API.md     observed portal endpoints and shapes
-â”œâ”€â”€ package.json
-â”œâ”€â”€ public/                front end: index.html, app.js, styles.css
-â”œâ”€â”€ scripts/probe.js       developer tool: check every endpoint
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ config.js          settings (env vars)
-â”‚   â”œâ”€â”€ portal/            portal client, endpoints, parsing, normalising, errors
-â”‚   â””â”€â”€ server/            HTTP routes, sessions, server entry point
-â””â”€â”€ test/                  node:test suites with synthetic fixtures
+├── AGENTS.md              instructions for AI coding assistants
+├── README.md
+├── docs/PORTAL_API.md     observed portal endpoints and shapes
+├── package.json
+├── public/                front end: index.html, app.js, styles.css
+├── scripts/probe.js       developer tool: check every endpoint
+├── src/
+│   ├── config.js          settings (env vars)
+│   ├── portal/            portal client, endpoints, parsing, normalising, errors
+│   └── server/            HTTP routes, sessions, server entry point
+└── test/                  node:test suites with synthetic fixtures
 ```
 
 ## Contributing

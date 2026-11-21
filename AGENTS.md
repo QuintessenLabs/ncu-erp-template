@@ -19,6 +19,12 @@ before you change code.
 5. **Do not call state-changing portal endpoints** (payments, registrations, applications,
    grievances, password changes) unless the user explicitly asks. Read-only features are the default.
 6. **Respect the portal.** Do not add polling loops or bulk requests for many students.
+7. **The biometric site is read-only.** Never submit or simulate a punch. Only the search GET is used.
+8. **Biometric lookups are for the logged-in student only.** The roll number always comes from the
+   session's portal profile. Never accept a roll number from the request, and never add a
+   "look up any roll number" feature.
+9. **Do not commit saved pages or punch data** from the biometric site, even as test fixtures.
+   Use the invented data in `fixtures/biometric.js`.
 
 ## Where things are
 
@@ -29,7 +35,10 @@ before you change code.
 | `src/portal/client.js` | `PortalClient`: login, bearer token, typed methods, `raw(key, query)`. |
 | `src/portal/envelope.js` | Unwraps `{Succeeded, Data, ...}` and parses JSON-in-a-string. |
 | `src/portal/normalize.js` | Converts raw rows into clean camelCase objects. Field-name fixes go here. |
-| `src/portal/errors.js` | `PortalError` (502 by default) and `AuthError` (401). |
+| `src/portal/errors.js` | `PortalError` (502 by default), `AuthError` (401) and `HttpError` (input problems). |
+| `src/biometric/client.js` | Reads punch records from the campus biometric site. Read-only, campus WiFi only. |
+| `src/biometric/parse.js` | Parses the biometric HTML punch table and summarises it per day. |
+| `src/biometric/dates.js` | Date formatting for the biometric site, campus-time "today", date validation. |
 | `src/server/app.js` | HTTP routes under `/api`, sessions, cookies, static files. |
 | `src/server/sessions.js` | In-memory session store with a sliding expiry. |
 | `src/server/index.js` | Starts the server. |
@@ -37,6 +46,8 @@ before you change code.
 | `scripts/probe.js` | Logs in and reports each endpoint. Output with `--raw` contains personal data. |
 | `test/` | `node:test` suites. They use a fake portal and never touch the network. |
 | `docs/PORTAL_API.md` | What we know about the portal's API, with observed shapes. |
+| `docs/BIOMETRIC.md` | The campus punch site: its search query, HTML table, route and limits. |
+| `fixtures/` | Synthetic responses for tests. Never replace them with real data. |
 
 ## How the request flow works
 

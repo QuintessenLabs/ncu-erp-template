@@ -9,6 +9,15 @@ export class PortalError extends Error {
   }
 }
 
+/** A problem with the request from our own client (bad input, unsupported body). Message is safe to show. */
+export class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+  }
+}
+
 /** The credentials were rejected, or the portal token is missing or expired. */
 export class AuthError extends PortalError {
   constructor(message = 'Invalid username or password') {

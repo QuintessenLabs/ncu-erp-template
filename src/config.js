@@ -27,6 +27,13 @@ export const config = Object.freeze({
   // Timeout for each call to the portal.
   requestTimeoutMs: Number(env('PORTAL_TIMEOUT_MS', '15000')),
 
+  // Biometric punch records. Only reachable from the NCU campus network (see docs/BIOMETRIC.md).
+  biometricBase: env('NCU_BIOMETRIC_BASE', 'https://biometric.local.ncuindia.edu/'),
+  biometricTimeoutMs: Number(env('BIOMETRIC_TIMEOUT_MS', '10000')),
+
+  // Time zone of the campus. Used to work out "today" and to format dates for the biometric site.
+  timeZone: env('NCU_TIME_ZONE', 'Asia/Kolkata'),
+
   // Set to "true" when serving over HTTPS so the session cookie is marked Secure.
   cookieSecure: env('COOKIE_SECURE', 'false') === 'true',
 });

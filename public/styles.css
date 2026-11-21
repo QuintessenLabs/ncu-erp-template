@@ -165,6 +165,17 @@ tr.clickable:hover { background: var(--bg); }
 .badge.ok { background: var(--ok-bg); color: var(--ok); }
 .badge.low { background: var(--low-bg); color: var(--low); }
 
+form.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  max-width: none;
+  margin-bottom: 12px;
+}
+
+form.inline-form label { min-width: 160px; }
+
 dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; margin: 0; }
 dl.facts dt { color: var(--muted); }
 dl.facts dd { margin: 0; font-weight: 600; }

@@ -6,7 +6,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from '../config.js';
 import { PortalClient } from '../portal/client.js';
-import { AuthError, PortalError } from '../portal/errors.js';
+import { AuthError, HttpError, PortalError } from '../portal/errors.js';
+import { BiometricClient } from '../biometric/client.js';
+import { parsePunchTable, summarizeByDay } from '../biometric/parse.js';
+import { addDays, daysBetween, parseIsoDay, todayInZone } from '../biometric/dates.js';
 import { SessionStore } from './sessions.js';
 
 const PUBLIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
@@ -29,32 +32,31 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'self'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'",
 };
 
-class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
+const MAX_BIOMETRIC_DAYS = 120;
+const DEFAULT_BIOMETRIC_DAYS = 30;
 
 /**
  * @param {object} [deps]
  * @param {SessionStore} [deps.sessions]
- * @param {() => PortalClient} [deps.createClient]  Factory; tests pass a fake portal here.
+ * @param {() => PortalClient} [deps.createClient]        Factory; tests pass a fake portal here.
+ * @param {() => BiometricClient} [deps.createBiometric]  Factory; tests pass a fake biometric site here.
  * @param {string} [deps.publicDir]
  */
 export function createApp({
   sessions = new SessionStore(config.sessionTtlMs),
   createClient = () => new PortalClient(),
+  createBiometric = () => new BiometricClient(),
   publicDir = PUBLIC_DIR,
 } = {}) {
-  // Logged-in routes: the handler receives the session's PortalClient.
+  // Logged-in routes: the handler receives the session's PortalClient and the session itself.
   const withPortal = (fn) => async (ctx) => {
     const session = sessions.get(ctx.sid);
     if (!session) throw new AuthError('Not logged in');
-    return fn(session.client, ctx);
+    return fn(session.client, ctx, session);
   };
 
   const routes = [
+    ['GET', /^\/api\/biometric$/, withPortal(biometric)],
     ['POST', /^\/api\/login$/, login],
     ['POST', /^\/api\/logout$/, logout],
     ['GET', /^\/api\/session$/, withPortal(async (_client, ctx) => ({ user: sessions.get(ctx.sid).user }))],
@@ -79,6 +81,26 @@ export function createApp({
     const user = await client.login(username, password);
     const sid = sessions.create({ client, user });
     return { body: { user }, cookie: sessionCookie(sid) };
+  }
+
+  // Punch records for the logged-in student only. The roll number comes from the portal profile,
+  // never from the request, so one student cannot look up another student's punches.
+  async function biometric(client, ctx, session) {
+    const to = ctx.url.searchParams.get('to') ?? todayInZone(config.timeZone);
+    const from = ctx.url.searchParams.get('from') ?? addDays(to, -(DEFAULT_BIOMETRIC_DAYS - 1));
+    parseIsoDay(from);
+    parseIsoDay(to);
+    const span = daysBetween(from, to);
+    if (span < 1) throw new HttpError(400, '"from" must be on or before "to"');
+    if (span > MAX_BIOMETRIC_DAYS) throw new HttpError(400, `Choose at most ${MAX_BIOMETRIC_DAYS} days at a time`);
+
+    if (!session.rollNo) {
+      session.rollNo = (await client.getBasicDetails()).rollNo;
+      if (!session.rollNo) throw new PortalError('Your roll number was not found in the portal profile');
+    }
+
+    const punches = await createBiometric().getPunches({ rollNo: session.rollNo, from, to });
+    return { from, to, punches, days: summarizeByDay(punches) };
   }
 
   async function logout(ctx) {

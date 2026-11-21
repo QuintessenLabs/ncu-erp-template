@@ -49,3 +49,18 @@ for (const key of Object.keys(PATHS)) {
     console.log(`${key}: ERROR, ${err.message}`);
   }
 }
+
+// Biometric punches: only reachable on the campus network. Shows the last 7 days for your roll number.
+try {
+  const { rollNo } = await client.getBasicDetails();
+  const { BiometricClient } = await import('../src/biometric/client.js');
+  const { todayInZone, addDays } = await import('../src/biometric/dates.js');
+  const { config } = await import('../src/config.js');
+  const to = todayInZone(config.timeZone);
+  const from = addDays(to, -6);
+  const punches = await new BiometricClient().getPunches({ rollNo, from, to });
+  console.log(`biometric (${from} to ${to}): ok, ${punches.length} punches`);
+  if (showRaw) console.log(JSON.stringify(punches, null, 2));
+} catch (err) {
+  console.log(`biometric: ERROR, ${err.message}`);
+}

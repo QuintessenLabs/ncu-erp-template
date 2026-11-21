@@ -160,6 +160,40 @@ const views = {
       table(['Course', 'Type', 'Credits', 'Mode'], rows, 'No courses registered.'));
   },
 
+  async biometric() {
+    const data = await api('/api/biometric');
+    const results = h('div', {});
+    const fromInput = h('input', { type: 'date', name: 'from', value: data.from, required: true });
+    const toInput = h('input', { type: 'date', name: 'to', value: data.to, required: true });
+
+    const form = h('form', {
+      class: 'inline-form',
+      onsubmit: async (event) => {
+        event.preventDefault();
+        results.replaceChildren(h('p', { class: 'muted' }, 'Loading...'));
+        try {
+          const range = await api(`/api/biometric?from=${encodeURIComponent(fromInput.value)}&to=${encodeURIComponent(toInput.value)}`);
+          results.replaceChildren(renderBiometric(range));
+        } catch (err) {
+          if (err.status === 401) return showLogin('Your session ended. Please log in again.');
+          results.replaceChildren(h('p', { class: 'error' }, err.message));
+        }
+      },
+    },
+      h('label', {}, 'From', fromInput),
+      h('label', {}, 'To', toInput),
+      h('button', { type: 'submit' }, 'Show punches'));
+
+    results.replaceChildren(renderBiometric(data));
+    return h('div', {},
+      h('h2', {}, 'Biometric punches'),
+      h('p', { class: 'muted' },
+        'Raw punches from the campus biometric system. It only opens on NCU campus WiFi. ',
+        'These are room and gate punches, not an official attendance record.'),
+      form,
+      results);
+  },
+
   async profile() {
     const p = await api('/api/profile');
     const items = [
@@ -170,6 +204,23 @@ const views = {
       h('dl', { class: 'facts' }, items.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, show(value))])));
   },
 };
+
+function renderBiometric(range) {
+  const punches = range.punches ?? [];
+  const days = range.days ?? [];
+  const dayRows = days.map((d) => h('tr', {},
+    h('td', {}, show(d.date)), h('td', {}, show(d.firstPunch)), h('td', {}, show(d.lastPunch)),
+    h('td', {}, d.punches), h('td', {}, show(d.rooms.join(', ')))));
+  // The roll number is deliberately not shown: the page is already scoped to the logged-in student.
+  const punchRows = punches.map((p) => h('tr', {},
+    h('td', {}, show(p.punchedAt ? p.punchedAt.replace('T', ' ') : p.punchTime)), h('td', {}, show(p.room))));
+  return h('div', {},
+    h('p', { class: 'muted' }, `${punches.length} punches on ${days.length} days, ${range.from} to ${range.to}.`),
+    h('h3', {}, 'By day'),
+    table(['Date', 'First', 'Last', 'Punches', 'Rooms'], dayRows, 'No punches in this range.'),
+    h('h3', {}, 'All punches'),
+    table(['Time', 'Room'], punchRows, 'No punches in this range.'));
+}
 
 async function showCourseDetail(course) {
   const box = $('#detail');
