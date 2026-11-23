@@ -8,6 +8,9 @@ It is a **template**. Copy it, change it, and build your own app on top. It is a
 **reference** for people and AI coding assistants who want to see how the portal's API works.
 If you are an AI assistant, start with [AGENTS.md](AGENTS.md).
 
+**Step-by-step instructions: [src/README.md](src/README.md)** (web app, API from any language,
+Python, JavaScript library, troubleshooting).
+
 > **Unofficial.** This project is not affiliated with or endorsed by NorthCap University. It
 > calls the portal's undocumented API, which can change without notice. Use it only with your
 > own account, and check the university's terms before you use it.

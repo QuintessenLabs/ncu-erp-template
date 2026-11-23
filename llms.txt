@@ -42,6 +42,7 @@ password goes from the browser straight to the portal. Never ship a shared serve
 
 ## Docs
 
+- `src/README.md`: step-by-step usage with tested examples (web app, HTTP API, Python, JavaScript)
 - `AGENTS.md`: rules for changing this repo, file map, recipes
 - `docs/PORTAL_API.md`: every endpoint with observed field names
 - `docs/BIOMETRIC.md`: campus biometric punch site (HTML, campus WiFi only)
