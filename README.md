@@ -136,6 +136,23 @@ node scripts/probe.js --raw  # full JSON
 
 Clear the variables afterwards with `Remove-Item Env:NCU_PASSWORD`.
 
+## Troubleshooting
+
+The terminal running `npm start` prints the reason when a tab fails. Error messages include a code
+such as `ENOTFOUND` or `TIMEOUT`.
+
+| What you see | Cause and fix |
+|---|---|
+| `This app needs Node.js 18.17 or newer` | Install the current LTS from nodejs.org. |
+| `Port 3000 is already in use` | Another program uses the port. Run `$env:PORT = "3001"; npm start` and open port 3001. |
+| Page opened but nothing works, or a `file:` address | Open <http://127.0.0.1:3000>, not `public/index.html`. |
+| `Invalid username or password` | The portal rejected the login. Check that the same details work on mycampus.ncuindia.edu. |
+| `Could not find the portal (ENOTFOUND)` | No internet, or DNS is blocked on this network. |
+| Biometric: `not reachable (ENOTFOUND) ... campus network` | You are not on NCU campus WiFi. The other tabs still work. |
+| Biometric: `did not answer in time` | Campus network is slow or blocking it. Try again, or set `$env:BIOMETRIC_TIMEOUT_MS = "30000"`. |
+| `certificate this computer does not trust` | The campus site uses a certificate your computer does not trust. Export the campus root certificate (PEM) and start with `$env:NODE_EXTRA_CA_CERTS = "C:\path\campus-ca.pem"; npm start`. |
+| `Unexpected biometric page` | The site changed its layout, or showed a login page. Open an issue and include the message, not the page. |
+
 ## Security and privacy
 
 - **Passwords** are sent from the browser to this server, then to the portal. They are not written

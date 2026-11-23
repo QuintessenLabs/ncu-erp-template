@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { PATHS } from './endpoints.js';
 import { AuthError, PortalError } from './errors.js';
 import { unwrapEnvelope } from './envelope.js';
+import { describeNetworkError } from '../net-errors.js';
 import {
   normalizeAttendanceDetails,
   normalizeAttendanceSummary,
@@ -152,7 +153,7 @@ export class PortalClient {
         signal: AbortSignal.timeout(this.timeoutMs),
       });
     } catch (cause) {
-      throw new PortalError('Could not reach the portal', { status: 502, cause });
+      throw new PortalError(describeNetworkError(cause, 'the portal'), { status: 502, cause });
     }
 
     if (res.status === 401) {

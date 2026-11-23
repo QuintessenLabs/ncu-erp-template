@@ -6,6 +6,7 @@
 
 import { config } from '../config.js';
 import { PortalError } from '../portal/errors.js';
+import { describeNetworkError, networkErrorCode } from '../net-errors.js';
 import { formatPortalDateTime } from './dates.js';
 import { parsePunchTable } from './parse.js';
 
@@ -46,10 +47,11 @@ export class BiometricClient {
         signal: AbortSignal.timeout(this.timeoutMs),
       });
     } catch (cause) {
-      throw new PortalError(
-        'The biometric site is not reachable. It only works on the NCU campus network.',
-        { status: 503, cause },
-      );
+      const code = networkErrorCode(cause);
+      const message = ['ENOTFOUND', 'EAI_AGAIN', 'UNKNOWN'].includes(code)
+        ? `The biometric site is not reachable (${code}). It only works on the NCU campus network.`
+        : describeNetworkError(cause, 'the biometric site');
+      throw new PortalError(message, { status: 503, cause });
     }
 
     if (!res.ok) {

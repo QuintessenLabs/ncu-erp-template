@@ -181,6 +181,8 @@ function sendError(res, err) {
     return sendJson(res, 401, { error: err.message }, { 'Set-Cookie': sessionCookie('', 0) });
   }
   if (err instanceof PortalError || err instanceof HttpError) {
+    // Log upstream failures so the terminal shows why a tab failed. Messages never contain passwords.
+    if ((err.status ?? 502) >= 500) console.warn(`[${err.status ?? 502}] ${err.message}`);
     return sendJson(res, err.status ?? 502, { error: err.message });
   }
   // Log the stack, never the request body (it may contain a password).

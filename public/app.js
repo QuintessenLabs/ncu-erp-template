@@ -273,6 +273,10 @@ $('#logout-btn').addEventListener('click', async () => {
 
 // On page load, reuse the server session if one exists.
 (async () => {
+  if (location.protocol === 'file:') {
+    // Opening index.html directly cannot work: the page needs the local server for /api calls.
+    return showLogin('Start the app with "npm start" and open http://127.0.0.1:3000 instead of opening this file directly.');
+  }
   try {
     const { user } = await api('/api/session');
     showApp(user);

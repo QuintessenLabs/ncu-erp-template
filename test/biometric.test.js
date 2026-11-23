@@ -101,6 +101,21 @@ test('BiometricClient says so when the campus site cannot be reached', async () 
   );
 });
 
+test('BiometricClient names timeouts and certificate problems instead of blaming the network', async () => {
+  const failWith = (cause) => new BiometricClient({
+    baseUrl: 'https://biometric.example.test/',
+    fetch: async () => { throw Object.assign(new TypeError('fetch failed'), { cause }); },
+  });
+  const query = { rollNo: 'SAMPLE001', from: '2026-09-01', to: '2026-09-01' };
+
+  await assert.rejects(failWith(Object.assign(new Error('x'), { code: 'SELF_SIGNED_CERT_IN_CHAIN' })).getPunches(query),
+    (err) => err.status === 503 && /certificate/.test(err.message) && /SELF_SIGNED_CERT_IN_CHAIN/.test(err.message));
+  await assert.rejects(failWith(Object.assign(new Error('x'), { code: 'UND_ERR_CONNECT_TIMEOUT' })).getPunches(query),
+    (err) => /did not answer in time/.test(err.message));
+  await assert.rejects(failWith(Object.assign(new Error('x'), { code: 'ENOTFOUND' })).getPunches(query),
+    (err) => /ENOTFOUND/.test(err.message) && /campus network/.test(err.message));
+});
+
 test('BiometricClient reports HTTP errors from the site', async () => {
   const client = new BiometricClient({
     baseUrl: 'https://biometric.example.test/',
