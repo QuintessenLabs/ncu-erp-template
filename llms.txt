@@ -1,0 +1,53 @@
+# ncu-erp-template
+
+> Template app and reference for the NorthCap University (NCU India) student ERP portal:
+> log in, then read attendance, timetable, internal marks, exam date sheet, courses and profile.
+> Unofficial. Read-only. Use only with your own account.
+
+Read this first if you are an AI assistant building something with this repo.
+
+## Pick one of three ways to get the data
+
+1. **Python, any project**: copy `examples/python/ncu_portal.py` (standard library only).
+   `portal = login(user, pw)` then `portal.attendance_summary()`, `portal.attendance_details(code)`,
+   `portal.schedule()`, `portal.internal_marks()`, `portal.date_sheet()`, `portal.current_courses()`,
+   `portal.profile()`.
+2. **JavaScript / Node 18.17+**: `import { PortalClient } from './src/portal/client.js'`, then
+   `await client.login(user, pw)` and `client.getAttendanceSummary()`, `getAttendanceDetails(code)`,
+   `getSchedule()`, `getInternalMarks()`, `getDateSheet()`, `getCurrentCourses()`, `getBasicDetails()`.
+3. **Any language over HTTP**: run `npm start`, then call this app's API at `http://127.0.0.1:3000`.
+   `POST /api/login` with `{"username","password"}` returns `{"user", "token"}`. Send
+   `Authorization: Bearer <token>` on every other call (or keep the `ncu_sid` cookie).
+   Routes: `/api/attendance`, `/api/attendance/<courseCode>`, `/api/schedule`, `/api/marks`,
+   `/api/datesheet`, `/api/courses`, `/api/profile`, `/api/biometric` (campus WiFi only).
+
+## If you call the portal API directly, these three mistakes return no data
+
+Base URL: `https://uatapi.ncuindia.edu/api/`. Login: `POST Authentication/ValidateUser` with
+`{"UserName","Password","IpAddress":"","UserType":"STUDENT"}` gives `{token, User:{UserId, Name}}`.
+Send `Authorization: Bearer <token>` on every GET.
+
+1. **`userId` is `User.UserId` from the login response, not the roll number.** The roll number
+   gives `Succeeded: false` and `Data: null`. `UserId` is opaque and its text differs on every
+   login, so use the one returned with the token you are using.
+2. **`Data` is a JSON string. Parse it twice.** `body.Data.Table` fails;
+   `JSON.parse(body.Data).Table` works. Check `Succeeded` first.
+3. **URL-encode `UserId`**. It contains `+`, `/` and `=`.
+
+Attendance summary rows are in `JSON.parse(Data).Table`. The timetable is in
+`JSON.parse(Data).Table1`. Other endpoints return a plain array after the second parse.
+
+CORS on the portal API allows any origin, so browser apps can call it directly, but then the
+password goes from the browser straight to the portal. Never ship a shared server that stores passwords.
+
+## Docs
+
+- `AGENTS.md`: rules for changing this repo, file map, recipes
+- `docs/PORTAL_API.md`: every endpoint with observed field names
+- `docs/BIOMETRIC.md`: campus biometric punch site (HTML, campus WiFi only)
+- `README.md`: setup, routes, troubleshooting
+
+## Rules
+
+Read-only by default. Do not call payment, registration or other state-changing endpoints unless
+the user asks. Never commit credentials, tokens or real responses. Do not poll or scrape other students.

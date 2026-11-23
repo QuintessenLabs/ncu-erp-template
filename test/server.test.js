@@ -109,6 +109,23 @@ test('full flow: login, read data, log out', async () => {
   assert.equal(after.status, 401);
 });
 
+test('non-browser clients can use the login token as a bearer token', async () => {
+  const res = await login({ username: '1001', password: 'good-password' });
+  const { token } = await res.json();
+  assert.match(token, /^[A-Za-z0-9_-]{40,}$/);
+
+  const ok = await fetch(`${base}/api/attendance`, { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).courses[0].courseCode, 'CS101');
+
+  const bad = await fetch(`${base}/api/attendance`, { headers: { Authorization: 'Bearer not-a-session' } });
+  assert.equal(bad.status, 401);
+
+  await fetch(`${base}/api/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: '{}' });
+  const after = await fetch(`${base}/api/attendance`, { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(after.status, 401);
+});
+
 test('data routes without a session return 401', async () => {
   const res = await fetch(`${base}/api/attendance`);
   assert.equal(res.status, 401);

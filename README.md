@@ -65,13 +65,32 @@ npm test
 
 See [docs/PORTAL_API.md](docs/PORTAL_API.md) for the endpoints, request bodies and response shapes.
 
+## Use it from another app, script or AI
+
+- **AI assistants**: start with [llms.txt](llms.txt). It is short and lists the API traps.
+- **Python**: copy [examples/python/ncu_portal.py](examples/python/ncu_portal.py). It is one file,
+  uses only the standard library, and talks to the portal directly.
+- **Any language**: run `npm start` and use the token from `/api/login`:
+
+```powershell
+$login = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:3000/api/login -ContentType 'application/json' -Body '{"username":"YOUR_USER","password":"YOUR_PASS"}'
+Invoke-RestMethod -Uri http://127.0.0.1:3000/api/attendance -Headers @{ Authorization = "Bearer $($login.token)" }
+```
+
+```bash
+TOKEN=$(curl -s -X POST localhost:3000/api/login -H 'Content-Type: application/json' \
+  -d '{"username":"YOUR_USER","password":"YOUR_PASS"}' | python -c 'import sys,json;print(json.load(sys.stdin)["token"])')
+curl -s localhost:3000/api/attendance -H "Authorization: Bearer $TOKEN"
+```
+
 ## API served by this app
 
-All responses are JSON. Data routes need the `ncu_sid` cookie that `/api/login` sets.
+All responses are JSON. Data routes need either the `ncu_sid` cookie that `/api/login` sets, or
+`Authorization: Bearer <token>` with the `token` from the login response.
 
 | Method | Path | Returns |
 |---|---|---|
-| POST | `/api/login` | `{ user: { id, name } }` and sets the session cookie. Body: `{ "username", "password" }` |
+| POST | `/api/login` | `{ user: { id, name }, token }` and sets the session cookie. Body: `{ "username", "password" }` |
 | POST | `/api/logout` | Ends the session |
 | GET | `/api/session` | `{ user }` if logged in, otherwise 401 |
 | GET | `/api/profile` | Name, roll number, programme, degree level, semester, section |

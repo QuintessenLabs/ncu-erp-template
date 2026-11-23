@@ -8,6 +8,15 @@ this file as a map, verify before relying on it, and update it when you find a c
 - JSON API the website calls: `https://uatapi.ncuindia.edu/api/`
   (the website's own configuration names this host, even though the site is the live portal)
 
+## Common mistakes (all verified against the live portal)
+
+| Mistake | What you get | Fix |
+|---|---|---|
+| `userId=<roll number>` | `Succeeded: false`, `Data: null` | Use `User.UserId` from the login response |
+| `body.Data.Table` | Error: `Data` is a string | `JSON.parse(body.Data).Table` |
+| No `Authorization` header | HTTP 401, empty body | `Authorization: Bearer <token>` |
+| Unencoded `UserId` in a hand-built URL | Fragile: it contains `+ / =` | URL-encode it (it happened to work in testing, but don't rely on it) |
+
 ## 1. Login
 
 `POST Authentication/ValidateUser`
@@ -28,6 +37,8 @@ Successful response (HTTP 200), no envelope:
 ```
 
 - `UserId` is an opaque string (not the roll number). Pass it back as `userId` in the calls below.
+  Its text differs on every login, but in testing an older value kept working with a newer token.
+  Simplest rule: use the `UserId` returned with the token you are using.
 - Every later call needs the header `Authorization: Bearer <token>`.
 - The token is a JWT with an `exp` claim. When it expires, calls return HTTP 401. Log in again.
 - `UserType` is `STUDENT` for the student login. The parent login uses a different value

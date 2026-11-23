@@ -80,7 +80,9 @@ export function createApp({
     const client = createClient();
     const user = await client.login(username, password);
     const sid = sessions.create({ client, user });
-    return { body: { user }, cookie: sessionCookie(sid) };
+    // `token` lets non-browser clients (curl, Python, other apps) skip cookies:
+    // send it back as "Authorization: Bearer <token>".
+    return { body: { user, token: sid }, cookie: sessionCookie(sid) };
   }
 
   // Punch records for the logged-in student only. The roll number comes from the portal profile,
@@ -116,7 +118,8 @@ export function createApp({
       pathMatched = true;
       if (req.method !== method) continue;
 
-      const ctx = { req, url, params: match.slice(1), sid: readCookie(req, COOKIE_NAME) };
+      // Browsers use the cookie. Scripts and other apps can send the same id as a bearer token.
+      const ctx = { req, url, params: match.slice(1), sid: readBearer(req) ?? readCookie(req, COOKIE_NAME) };
       const result = await handler(ctx);
       const isWrapped = result && typeof result === 'object' && 'body' in result && 'cookie' in result;
       const payload = isWrapped ? result.body : result;
@@ -216,6 +219,11 @@ async function readJson(req) {
   } catch {
     throw new HttpError(400, 'Request body must be a JSON object');
   }
+}
+
+function readBearer(req) {
+  const match = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '');
+  return match ? match[1] : null;
 }
 
 function readCookie(req, name) {

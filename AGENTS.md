@@ -5,11 +5,25 @@ University (NCU India) student ERP portal and shows attendance, timetable, marks
 date sheet and courses. The repo is a template: people copy it and change it. Read this file
 before you change code.
 
+## Before anything else: the three traps of the portal API
+
+These are why "attendance is missing" when you call the portal yourself. `llms.txt` has the
+short version, and `examples/python/ncu_portal.py` is a working standalone client.
+
+1. `userId` in every query is **`User.UserId` from the login response, not the roll number**.
+   The roll number returns `Succeeded: false`, `Data: null`. Use the `UserId` that came with your token.
+2. **`Data` is a JSON string**: parse the response, then parse `Data` again.
+   Attendance is in `Table`, and the timetable is in `Table1`.
+3. **URL-encode `UserId`** (it contains `+`, `/`, `=`).
+
+To use this app from another program, `POST /api/login` returns a `token`. Send it as
+`Authorization: Bearer <token>` instead of relying on cookies.
+
 ## Ground rules
 
 1. **Never add real credentials or personal data.** No usernames, passwords, tokens, roll
    numbers or real portal responses in code, tests, docs, commit messages or issues.
-   Fixtures in `test/fixtures.js` are synthetic. Keep them that way.
+   Fixtures in `fixtures/` are synthetic. Keep them that way.
 2. **Never log or store passwords.** The login path forwards the password once and drops it.
    Do not add `console.log` of request bodies, and do not write sessions to disk.
 3. **Keep it dependency-free** unless the user asks otherwise. The app uses only Node built-ins
@@ -44,6 +58,8 @@ before you change code.
 | `src/server/index.js` | Starts the server. |
 | `public/` | Plain HTML, CSS and JavaScript front end. No build step. |
 | `scripts/probe.js` | Logs in and reports each endpoint. Output with `--raw` contains personal data. |
+| `examples/python/ncu_portal.py` | Standalone Python client (standard library only). Copy it into any project. |
+| `llms.txt` | Short guide for AI assistants: three ways to get data, three API traps. |
 | `test/` | `node:test` suites. They use a fake portal and never touch the network. |
 | `docs/PORTAL_API.md` | What we know about the portal's API, with observed shapes. |
 | `docs/BIOMETRIC.md` | The campus punch site: its search query, HTML table, route and limits. |
@@ -68,7 +84,7 @@ before you change code.
 2. Add it to `PATHS` in `src/portal/endpoints.js` with a comment describing the query and payload.
 3. Use `node scripts/probe.js --raw` (after setting `NCU_USERNAME` and `NCU_PASSWORD` in your
    shell, not in a file) to see the real shape. Do not commit that output.
-4. Write a normaliser in `src/portal/normalize.js` with a synthetic fixture in `test/fixtures.js`.
+4. Write a normaliser in `src/portal/normalize.js` with a synthetic fixture in `fixtures/portal.js`.
 5. Add a method to `PortalClient` (`getFeeReceipts()`), then a route in `src/server/app.js`
    using `withPortal(...)`.
 6. Add a tab in `public/index.html` and a view in `public/app.js` (use `textContent`, never `innerHTML`).
